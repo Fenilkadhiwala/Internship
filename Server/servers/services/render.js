@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const ShopDb = require("../model/model");
 const LoginDb = require("../model/loginModel");
+const ExpiredDb = require("../model/expiedModel");
 
 const myQueues = require("../../processer/index");
 
@@ -28,7 +29,8 @@ const workerImplementation = async (req, res) => {
         }
       });
     });
-    // require("./processer/index");
+
+    // console.log(expiredQueue);
 
     myQueues.callingQueues();
     // myFunc();
@@ -201,6 +203,15 @@ exports.schedule = async (req, res) => {
     });
   } catch (err) {
     console.log(err, "Backend Failure While deleting expired stock");
+  }
+};
+
+exports.getAllExpired = async (req, res) => {
+  try {
+    const expiredData = await ExpiredDb.find({});
+    res.json(expiredData);
+  } catch {
+    console.log("Backend Failure While sending expired stock");
   }
 };
 

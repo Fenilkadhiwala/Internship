@@ -19,5 +19,6 @@ router.post("/updateStock/:id", services.updateQuantity);
 // Handling And Deleting The Expired Stock..
 router.post("/schedule", services.schedule);
 
+router.post("/expired", services.getAllExpired); 
+
 module.exports = router;
- 
