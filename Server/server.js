@@ -2,10 +2,16 @@ const express = require("express");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const Queue = require("bull");
+// const { REDIS_PORT, REDIS_URI } = require("./redisCredentials");
+const { REDIS_PORT, REDIS_URI } = require("./servers/redis/redisCredentials");
+
+const ShopDb = require("./servers/model/model");
 
 const ConnectDb = require("./servers/database/connection");
 const router = require("./servers/routes/route");
- 
+// require("./processer/index");
+
 const app = express();
 
 dotenv.config({
@@ -31,5 +37,6 @@ PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
   ConnectDb();
+
   console.log(`http://localhost:${PORT}`);
 });

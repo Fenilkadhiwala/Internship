@@ -2,7 +2,7 @@ const express = require("express");
 const services = require("../services/render");
 
 const router = express.Router();
- 
+
 //Apis
 router.post("/add", services.addProduct);
 router.get("/all", services.getData);
@@ -16,4 +16,8 @@ router.post("/meds", services.allMeds);
 router.post("/prices", services.allPrices);
 router.post("/updateStock/:id", services.updateQuantity);
 
+// Handling And Deleting The Expired Stock..
+router.post("/schedule", services.schedule);
+
 module.exports = router;
+ 
