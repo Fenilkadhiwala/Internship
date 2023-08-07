@@ -10,6 +10,7 @@ const expiredQueue = new Queue("expiredQueue", {
 });
 
 exports.callingQueues = () => {
+  console.log('hey hry');
   expiredQueue.process(path.join(__dirname, "expiredQueueProcessor.js"));
 };
 

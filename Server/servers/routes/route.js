@@ -11,14 +11,18 @@ router.put("/:id", services.updateProduct);
 router.delete("/:id", services.deleteProduct);
 router.post("/credentials", services.addCredentials);
 router.post("/login", services.checkLoginCredentials);
+// router.post("/checklogin", services.checkSession);
 router.post("/company/:id", services.companyName);
 router.post("/meds", services.allMeds);
 router.post("/prices", services.allPrices);
 router.post("/updateStock/:id", services.updateQuantity);
+router.post("/email", services.checkEmail);
+router.post("/sendemail", services.sendEmail);
+router.post("/resetpassword", services.resetPassword);
 
 // Handling And Deleting The Expired Stock..
 router.post("/schedule", services.schedule);
 
-router.post("/expired", services.getAllExpired); 
+router.post("/expired", services.getAllExpired);
 
 module.exports = router;

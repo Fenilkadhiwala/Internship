@@ -16,7 +16,7 @@ const { Worker } = require("bullmq");
 
 const expiredQueueProcessor = (job, done) => {
   console.log(job);
-  // console.log("Reached");
+  
   const dt = new Date();
 
   const months = [
@@ -67,12 +67,12 @@ const expiredQueueProcessor = (job, done) => {
     { delay: differenceInMilliseconds }
   );
 
-  // console.log(
-  //   itemName,
-  //   "Added In The deleteQueue With Delay Of",
-  //   differenceInMilliseconds,
-  //   "milliseconds"
-  // );
+  console.log(
+    itemName,
+    "Added In The deleteQueue With Delay Of",
+    differenceInMilliseconds,
+    "milliseconds"
+  );
   console.log();
   done();
 };

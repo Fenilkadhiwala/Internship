@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const ShopDb = require("../model/model");
 const LoginDb = require("../model/loginModel");
 const ExpiredDb = require("../model/expiedModel");
+const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer");
+const saltRound = 10;
 
 const myQueues = require("../../processer/index");
 
@@ -95,10 +98,23 @@ exports.deleteProduct = async (req, res) => {
 
 exports.addCredentials = async (req, res) => {
   try {
-    const loginObj = new LoginDb(req.body);
-    loginObj.save();
+    const password = req.body.password;
 
-    console.log("Registered Successfully");
+    bcrypt.hash(password, saltRound, (e, hash) => {
+      if (e) {
+        console.log(e);
+      }
+      const loginObj = new LoginDb({
+        username: req.body.username,
+        email: req.body.email,
+        phone: req.body.phone,
+        shop: req.body.shop,
+        password: hash,
+      });
+      loginObj.save();
+      console.log("Registered Successfully");
+    });
+
     res.json("Registered");
   } catch (e) {
     console.log("Backend Failure While Adding User's Credentials");
@@ -118,14 +134,13 @@ exports.checkLoginCredentials = async (req, res) => {
 
     // console.log(user.password);
 
-    if (password != user.password) {
-      // console.log("NOT WELCOME");
-      res.json({ isCorrect: false });
-    } else {
-      // console.log("Welcome");
-      // console.log(user._id);
-      res.json({ isCorrect: true, userId: user._id });
-    }
+    bcrypt.compare(password, user.password, (e, response) => {
+      if (response) {
+        res.json({ isCorrect: true, userId: user._id });
+      } else {
+        res.json({ isCorrect: false });
+      }
+    });
   } catch (err) {
     // console.log("Not Exist");
     res.json({ isText: "not" });
@@ -212,6 +227,78 @@ exports.getAllExpired = async (req, res) => {
     res.json(expiredData);
   } catch {
     console.log("Backend Failure While sending expired stock");
+  }
+};
+
+exports.checkEmail = async (req, res) => {
+  try {
+    console.log(req.body.email);
+
+    const email = req.body.email;
+
+    const us = await LoginDb.findOne({ email });
+
+    if (!us) {
+      res.json({ userStatus: false });
+    } else {
+      res.json({ userStatus: true });
+    }
+  } catch {
+    console.log("Backend Failure While checking email");
+  }
+};
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: "fenilkadhiwala.co20d1@scet.ac.in",
+    pass: "Fenildarshanmeghajeel29192630",
+  },
+});
+
+exports.sendEmail = async (req, res) => {
+  try {
+    const em = req.body;
+
+    const email = Object.keys(em)[0];
+    console.log(email);
+
+    const mailOptions = {
+      from: "fenilkadhiwala.co20d1@scet.ac.in",
+      to: email,
+      subject: "Subject of the email",
+      text: "http://localhost:3000/reset",
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ error: "Error sending email" });
+      } else {
+        console.log("Email sent:", info.response);
+        res.json({ emStatus: true });
+      }
+    });
+  } catch {
+    console.log("Backend Failure While sending email");
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    // console.log(req.body);
+    const email = req.body.email;
+    const newPass = req.body.newPassword;
+
+    const user = await LoginDb.findOne({ email });
+    // console.log(user);
+    const newHashedPass = await bcrypt.hash(newPass, saltRound);
+    user.password = newHashedPass;
+
+    await user.save();
+    return res.json({ resetBool: true });
+  } catch {
+    console.log("Backend Failure While reseting password");
+    return res.json({ resetBool: false });
   }
 };
 
