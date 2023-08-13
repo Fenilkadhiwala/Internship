@@ -1,0 +1,33 @@
+.paddingAll {
+  /* padding: 10px 10px 10px 10px; */
+}
+
+.price {
+  font-weight: 600;
+}
+
+.sub {
+  font-size: 14px;
+}
+
+.icon {
+  margin-top: 20px;
+  margin-left: 20px;
+  /* color: white; */
+}
+
+.gradient {
+  /* background: rgb(40, 34, 70); */
+  background: linear-gradient(158deg, rgba(40, 34, 70, 1)0%, rgba(40, 34, 70, 1)100%);
+}
+
+.gradientLight {
+  background: rgb(53, 138, 148);
+  background: linear-gradient(158deg, rgba(53, 138, 148)0%, rgba(91, 180, 96, 1)100%);
+}
+
+.bgColor {
+  min-height: 100vh;
+  background: #ECEFF1;
+  background: linear-gradient(158deg, rgb(224, 224, 224)0%, rgb(233, 237, 254)100%);
+}
