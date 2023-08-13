@@ -15,7 +15,7 @@ import {
 } from "@material-ui/core";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 
-import { addCredentials } from "../api";
+import { addCredentials, whetherUserExist, emailAlreadyExists } from "../api";
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +30,7 @@ const initialCredentials = {
 
 const paperStyle = {
   padding: 20,
-  height: "80vh",
+  height: "83vh",
   width: 330,
   margin: "20px auto",
 };
@@ -41,11 +41,55 @@ const btnstyle = { margin: "8px 0" };
 export const Register = () => {
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogEmailOpen, setDialogEmailOpen] = useState(false);
   const [credentials, setCredentials] = useState(initialCredentials);
+  const [usernameExists, setUsernameExists] = useState(false); // State to track whether the username exists
+  const [usernameChecked, setUsernameChecked] = useState(false); // State to track if the username availability has been checked
+  const [passwordMatch, setPasswordMatch] = useState(true);
+  const [validPhone, setValidPhone] = useState(true);
 
-  const typeCredentials = (event) => {
-    // console.log(event.target.value);
+  const typeCredentials = async (event) => {
+    // console.log(event.target);
+    const { name, value } = event.target;
+
+    // console.log(name, value);
     setCredentials({ ...credentials, [event.target.name]: event.target.value });
+
+    if (name === "username") {
+      setUsernameChecked(false);
+      setUsernameExists(false);
+    }
+
+    if (value) {
+      try {
+        const usernameBool = await whetherUserExist(value);
+        setUsernameExists(usernameBool.data.taken);
+      } catch (err) {
+        console.log(err);
+      }
+      setUsernameChecked(true);
+    }
+
+    if (name === "password" || name === "confirmPassword") {
+      const newPassword = name === "password" ? value : credentials.password;
+      const newConfirmPassword =
+        name === "confirmPassword" ? value : credentials.confirmPassword;
+      setPasswordMatch(
+        newPassword === newConfirmPassword || newConfirmPassword === ""
+      );
+    }
+
+    if (name === "phone") {
+      const phoneLength = value.length;
+
+      // console.log(phoneLength);
+
+      if (phoneLength !== 10) {
+        setValidPhone(false);
+      } else {
+        setValidPhone(true);
+      }
+    }
   };
 
   const navigate = useNavigate();
@@ -54,18 +98,40 @@ export const Register = () => {
     setDialogOpen(true);
   };
 
+  const handleEmailDialogOpen = () => {
+    setDialogEmailOpen(true);
+  };
+
   const handleDialogClose = () => {
     setDialogOpen(false);
     navigate("/");
   };
 
+  const handleEmailDialogClose = () => {
+    setDialogEmailOpen(false);
+    navigate("/");
+  };
+
   const checkCredentials = async () => {
-    setLoading(true); // Set loading to true before making the API call
+    if (!passwordMatch) {
+      return; // Don't proceed if passwords don't match
+    }
+    setLoading(true);
+    console.log(credentials);
+    const userEmail = credentials.email;
 
-    await addCredentials(credentials);
+    const accountBool = await emailAlreadyExists(userEmail);
 
-    setLoading(false); // Set loading back to false after the API call completes
-    handleDialogOpen();
+    const emailBool = accountBool.data.alreadyHasAccount;
+
+    if (emailBool) {
+      // alert("You Already Have Account");
+      handleEmailDialogOpen();
+    } else {
+      await addCredentials(credentials);
+      setLoading(false); // Set loading back to false after the API call completes
+      handleDialogOpen();
+    }
   };
 
   return (
@@ -86,6 +152,10 @@ export const Register = () => {
             required
             onChange={typeCredentials}
             autoComplete="off"
+            error={usernameChecked && usernameExists}
+            helperText={
+              usernameChecked && usernameExists ? "Username not available" : ""
+            }
           />
 
           <TextField
@@ -107,6 +177,10 @@ export const Register = () => {
             onChange={typeCredentials}
             style={{ marginTop: "8px" }}
             autoComplete="off"
+            error={!validPhone}
+            helperText={
+              !validPhone ? "Phone number should be 10 digits long!" : ""
+            }
           />
           <TextField
             label="Company Name"
@@ -126,7 +200,10 @@ export const Register = () => {
             fullWidth
             required
             onChange={typeCredentials}
-            style={{ marginTop: "8px" }}
+            style={{
+              marginTop: "8px",
+              borderColor: passwordMatch ? "" : "red",
+            }}
             autoComplete="off"
           />
           <TextField
@@ -135,9 +212,16 @@ export const Register = () => {
             type="password"
             fullWidth
             required
+            name="confirmPassword"
             onChange={typeCredentials}
-            style={{ marginTop: "8px", marginBottom: "8px" }}
+            style={{
+              marginTop: "8px",
+              marginBottom: "8px",
+              borderColor: !passwordMatch ? "red" : "",
+            }}
             autoComplete="off"
+            error={!passwordMatch}
+            helperText={!passwordMatch ? "Passwords do not match" : ""}
           />
 
           <Button
@@ -147,9 +231,9 @@ export const Register = () => {
             style={btnstyle}
             fullWidth
             onClick={checkCredentials}
-            disabled={loading} // Disable the button while loading is true
+            disabled={!passwordMatch}
           >
-            {loading ? "Signing Up..." : "Sign Up"}
+            Sign Up
           </Button>
 
           <Typography>
@@ -174,6 +258,24 @@ export const Register = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose} color="primary" autoFocus>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={dialogEmailOpen}
+        onClose={handleEmailDialogClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Registration Fail"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            You already have an account please login!
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEmailDialogClose} color="primary" autoFocus>
             Close
           </Button>
         </DialogActions>

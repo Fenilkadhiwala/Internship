@@ -134,9 +134,29 @@ export const fetchTokensFromServer = async () => {
 
 export const isAuthenticated = async () => {
   try {
-    console.log('djd');
+    console.log("djd");
     return await axios.post(`${URL}/verifyAuth`);
   } catch {
     console.log("Something Went Wrong While fetching tokens from backend");
+  }
+};
+
+export const whetherUserExist = async (value) => {
+  try {
+    return await axios.post(`${URL}/takenOrNot`, value);
+  } catch {
+    console.log(
+      "Something Went Wrong While Checking Whether Username Has Been Already Taken"
+    );
+  }
+};
+
+export const emailAlreadyExists = async (userEmail) => {
+  try {
+    return await axios.post(`${URL}/emailAlreadyExists`, userEmail);
+  } catch {
+    console.log(
+      "Something Went Wrong While Checking Whether User Has An Account Or not"
+    );
   }
 };

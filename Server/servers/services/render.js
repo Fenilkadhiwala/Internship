@@ -5,6 +5,13 @@ const ExpiredDb = require("../model/expiedModel");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const saltRound = 10;
+const jwt = require("jsonwebtoken");
+let refreshToken = "";
+let accessToken = "";
+const accessSecretKey =
+  "4dfa612e335f1c258faf55a867c5ac12b77934d1938e1410ab0241b960872f02";
+const refreshSecretKey =
+  "7bcef4e5b4a91ddc7afdcc31af961a61e2ba827f060ac00c3510b41e9cefd78f";
 
 const myQueues = require("../../processer/index");
 
@@ -136,6 +143,17 @@ exports.checkLoginCredentials = async (req, res) => {
 
     bcrypt.compare(password, user.password, (e, response) => {
       if (response) {
+        refreshToken = jwt.sign({ user }, refreshSecretKey, {
+          expiresIn: "7d",
+        });
+
+        accessToken = jwt.sign({ user }, refreshSecretKey, {
+          expiresIn: "10m",
+        });
+
+        res.cookie("refreshToken", refreshToken, { httpOnly: true });
+        res.cookie("accessToken", accessToken);
+
         res.json({ isCorrect: true, userId: user._id });
       } else {
         res.json({ isCorrect: false });
@@ -146,6 +164,23 @@ exports.checkLoginCredentials = async (req, res) => {
     res.json({ isText: "not" });
   }
 };
+
+// const setCookieFunc = (
+//   refreshToken,
+//   accessToken,
+//   refreshSecretKey,
+//   accessSecretKey
+// ) => {
+//   const tokenObj = {
+//     refresh: refreshToken,
+//     access: accessToken,
+//     refreshKey: refreshSecretKey,
+//     accessKey: accessSecretKey,
+//   };
+
+//   console.log("from render", tokenObj);
+//   return tokenObj;
+// };
 
 exports.companyName = async (req, res) => {
   try {
@@ -302,13 +337,41 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// exports.deleteQueueItem = async (deletedId) => {
-//   // console.log("finally to the delete");
-//   // try {
-//   //   await ShopDb.deleteOne({ _id: deletedId });
-//   //   res.json("Deleted");
-//   //   console.log("Deleted From The Queue Successfully");
-//   // } catch (e) {
-//   //   console.log("Failure While Deleting Item From The Backend");
-//   // }
-// };
+exports.takenOrNot = async (req, res) => {
+  try {
+    // console.log(req.body);
+    const keysAr = Object.keys(req.body);
+    const value = keysAr[0];
+
+    const result = await LoginDb.findOne({ username: value });
+
+    if (result) {
+      res.json({ taken: true });
+    } else {
+      res.json({ taken: false });
+    }
+  } catch {
+    console.log(
+      "Backend Failure while checking username has been taken or not"
+    );
+  }
+};
+
+exports.emailAlreadyExists = async (req, res) => {
+  try {
+    const userEmail = req.body;
+    // console.log(userEmail);
+    const email = Object.keys(userEmail)[0];
+    // console.log(email);
+
+    const emailResult = await LoginDb.findOne({ email: email });
+
+    if (emailResult) {
+      res.json({ alreadyHasAccount: true });
+    } else {
+      res.json({ alreadyHasAccount: false });
+    }
+  } catch {
+    console.log("Backend Failure while checking user has account or not");
+  }
+};
