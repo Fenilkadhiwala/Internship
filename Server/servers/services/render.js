@@ -4,14 +4,10 @@ const LoginDb = require("../model/loginModel");
 const ExpiredDb = require("../model/expiedModel");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
-const saltRound = 10;
-const jwt = require("jsonwebtoken");
-let refreshToken = "";
-let accessToken = "";
-const accessSecretKey =
-  "4dfa612e335f1c258faf55a867c5ac12b77934d1938e1410ab0241b960872f02";
-const refreshSecretKey =
-  "7bcef4e5b4a91ddc7afdcc31af961a61e2ba827f060ac00c3510b41e9cefd78f";
+const ObjectId = require("mongodb").ObjectId;
+
+const createTokens = require("../services/tokens");
+// const ManageTokens = require("../services/auth");
 
 const myQueues = require("../../processer/index");
 
@@ -143,18 +139,20 @@ exports.checkLoginCredentials = async (req, res) => {
 
     bcrypt.compare(password, user.password, (e, response) => {
       if (response) {
-        refreshToken = jwt.sign({ user }, refreshSecretKey, {
-          expiresIn: "7d",
+        const wholeId = user._id;
+
+        const tokens = createTokens(wholeId);
+
+        res.cookie("refreshToken", tokens.refreshToken, {
+          httpOnly: true,
+          maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
-        accessToken = jwt.sign({ user }, refreshSecretKey, {
-          expiresIn: "10m",
+        res.json({
+          isCorrect: true,
+          userId: user._id,
+          accessToken: tokens.accessToken,
         });
-
-        res.cookie("refreshToken", refreshToken, { httpOnly: true });
-        res.cookie("accessToken", accessToken);
-
-        res.json({ isCorrect: true, userId: user._id });
       } else {
         res.json({ isCorrect: false });
       }
@@ -164,23 +162,6 @@ exports.checkLoginCredentials = async (req, res) => {
     res.json({ isText: "not" });
   }
 };
-
-// const setCookieFunc = (
-//   refreshToken,
-//   accessToken,
-//   refreshSecretKey,
-//   accessSecretKey
-// ) => {
-//   const tokenObj = {
-//     refresh: refreshToken,
-//     access: accessToken,
-//     refreshKey: refreshSecretKey,
-//     accessKey: accessSecretKey,
-//   };
-
-//   console.log("from render", tokenObj);
-//   return tokenObj;
-// };
 
 exports.companyName = async (req, res) => {
   try {

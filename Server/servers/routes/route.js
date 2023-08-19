@@ -1,6 +1,6 @@
 const express = require("express");
 const services = require("../services/render");
-const auths = require("../services/auth");
+// const auths = require("../services/auth");
 const router = express.Router();
 
 //Apis
@@ -22,7 +22,7 @@ router.post("/resetpassword", services.resetPassword);
 router.post("/takenOrNot", services.takenOrNot);
 router.post("/emailAlreadyExists", services.emailAlreadyExists);
 // router.post("/fetchBothTokens", auths.returnTokens);
-router.post("/verifyAuth", auths.verifyAuth);
+// router.post("/verifyAuth", auths.verifyAuth);
 
 // Handling And Deleting The Expired Stock..
 router.post("/schedule", services.schedule);
