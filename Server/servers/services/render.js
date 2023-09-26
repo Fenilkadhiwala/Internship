@@ -3,10 +3,15 @@ const ShopDb = require("../model/model");
 const LoginDb = require("../model/loginModel");
 const ExpiredDb = require("../model/expiedModel");
 const bcrypt = require("bcrypt");
+const saltRounds = 12;
 const nodemailer = require("nodemailer");
-const ObjectId = require("mongodb").ObjectId;
+// const ObjectId = require("mongodb").ObjectId;
+const jwt = require("jsonwebtoken");
+const accessSecretKey =
+  "4dfa612e335f1c258faf55a867c5ac12b77934d1938e1410ab0241b960872f02";
+const maxAge = 3 * 24 * 60 * 60;
 
-const createTokens = require("../services/tokens");
+// const createTokens = require("../services/tokens");
 // const ManageTokens = require("../services/auth");
 
 const myQueues = require("../../processer/index");
@@ -21,6 +26,10 @@ const expiredQueue = new Queue("expiredQueue", {
     host: REDIS_URI,
   },
 });
+
+const createTokens = (id) => {
+  return jwt.sign({ id }, accessSecretKey, { expiresIn: maxAge });
+};
 
 const workerImplementation = async (req, res) => {
   try {
@@ -91,6 +100,7 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
+    console.log("Reaching dele");
     await ShopDb.deleteOne({ _id: req.params.id });
     res.json("Deleted");
     console.log("Updated Successfully");
@@ -103,10 +113,12 @@ exports.addCredentials = async (req, res) => {
   try {
     const password = req.body.password;
 
-    bcrypt.hash(password, saltRound, (e, hash) => {
+    bcrypt.hash(password, saltRounds, (e, hash) => {
+      console.log("reach ac");
       if (e) {
         console.log(e);
       }
+      console.log("Heyy");
       const loginObj = new LoginDb({
         username: req.body.username,
         email: req.body.email,
@@ -125,7 +137,8 @@ exports.addCredentials = async (req, res) => {
 };
 
 exports.checkLoginCredentials = async (req, res) => {
-  // console.log(req.body);
+  console.log(req.body);
+
   const username = req.body.username;
   const password = req.body.password;
 
@@ -139,19 +152,19 @@ exports.checkLoginCredentials = async (req, res) => {
 
     bcrypt.compare(password, user.password, (e, response) => {
       if (response) {
-        const wholeId = user._id;
+        // const wholeId = user._id;
 
-        const tokens = createTokens(wholeId);
+        // const tokens = createTokens(wholeId);
 
-        res.cookie("refreshToken", tokens.refreshToken, {
-          httpOnly: true,
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        // res.cookie("refreshToken", tokens.refreshToken, {
+        //   httpOnly: true,
+        //   maxAge: 7 * 24 * 60 * 60 * 1000,
+        // });
 
         res.json({
           isCorrect: true,
           userId: user._id,
-          accessToken: tokens.accessToken,
+          // accessToken: tokens.accessToken,
         });
       } else {
         res.json({ isCorrect: false });

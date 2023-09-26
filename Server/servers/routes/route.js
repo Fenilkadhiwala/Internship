@@ -21,10 +21,7 @@ router.post("/sendemail", services.sendEmail);
 router.post("/resetpassword", services.resetPassword);
 router.post("/takenOrNot", services.takenOrNot);
 router.post("/emailAlreadyExists", services.emailAlreadyExists);
-// router.post("/fetchBothTokens", auths.returnTokens);
-// router.post("/verifyAuth", auths.verifyAuth);
 
-// Handling And Deleting The Expired Stock..
 router.post("/schedule", services.schedule);
 
 router.post("/expired", services.getAllExpired);

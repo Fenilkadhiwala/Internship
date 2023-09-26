@@ -38,6 +38,7 @@ export const updateProduct = async (data, id) => {
 
 export const deleteData = async (id) => {
   try {
+    console.log("CG");
     return axios.delete(`${URL}/${id}`);
   } catch {
     console.log("Something Went Wrong While Deleting Product");
@@ -46,6 +47,7 @@ export const deleteData = async (id) => {
 
 export const addCredentials = async (credentials) => {
   try {
+    console.log("ac");
     return axios.post(`${URL}/credentials`, credentials);
   } catch (err) {
     console.log("Something Went Wrong While Signing Up");

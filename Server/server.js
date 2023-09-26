@@ -36,7 +36,6 @@ app.use(
 app.use(cors());
 app.use("/", router);
 
-
 PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
